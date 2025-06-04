@@ -1,0 +1,104 @@
+This app is like a small Ethereum wallet you use in your browser. 
+It works with MetaMask, it is like a key to your Ethereum money. 
+When you click on "Receive token Wallet" button the app connect with metamask, 
+when connected to metamask it shows your Ethereum address. 
+The app let you send reward in Ethereum to someone by inputting the receiver 
+ethereum address and also the amount of ETH you want to send. 
+You send the ethereum by clicking the "Send Reward (ETH)" button to credit the receiver wallet.
+
+Below is the index.html code
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+    <h1>🚀 Reward DApp</h1>
+
+    <button id="connect">Receive token Wallet</button>
+    <p id="account">Account: connected</p>
+    <p id="balance">Balance: 0.00</p>
+
+    <h3>Send ETH</h3>
+    <input id="toAddress" placeholder="Receiver address">
+    <input id="amount" placeholder="Reward in ETH">
+    <button id="send">Send Rewards (ETH)</button>
+
+    <p id="txStatus"></p>
+  </body>
+
+  <div style='position:absolute; bottom:0px'>
+    <h4> Powered by Ageless</h4>
+  </div>
+</html>
+
+
+Below is the main.js file
+
+import { ethers } from "ethers";
+import './style.css'
+import { setupCounter } from './counter.js'
+
+
+let provider;
+let signer;
+
+const connectBtn = document.getElementById("connect");
+const accountText = document.getElementById("account");
+const balanceText = document.getElementById("balance");
+const sendBtn = document.getElementById("send");
+const txStatus = document.getElementById("txStatus");
+
+connectBtn.onclick = async () => {
+  if (window.ethereum) {
+    // Ask MetaMask to connect
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+
+    // Set up provider and signer
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+
+    const address = await signer.getAddress();
+    accountText.innerText = Account: ${address}`;
+
+    // Get balance
+    const balance = await provider.getBalance(address);
+    const ethBalance = ethers.formatEther(balance);
+    balanceText.innerText = Balance: ${ethBalance} ETH`;
+  } else {
+    alert("Please install MetaMask!");
+  }
+};
+
+sendBtn.onclick = async () => {
+  if (!signer) {
+    alert("Connect your wallet first!");
+    return;
+  }
+
+  const to = document.getElementById("toAddress").value;
+  const amount = document.getElementById("amount").value;
+
+  try {
+    const tx = await signer.sendTransaction({
+      to,
+      value: ethers.parseEther(amount)
+    });
+
+    txStatus.innerText = "⏳ Sending...";
+    await tx.wait(); // Wait for confirmation
+    txStatus.innerText = `✅ Sent! TX Hash: ${tx.hash}`;
+  } catch (err) {
+    console.error(err);
+    txStatus.innerText = "❌ Error sending ETH.";
+  }
+};
+`
+
+setupCounter(document.querySelector('#counter'))
